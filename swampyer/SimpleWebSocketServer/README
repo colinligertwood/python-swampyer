@@ -1,0 +1,12 @@
+==========
+ Simple-websocket-server
+==========
+
+Overview
+========
+This was imported from https://github.com/dpallot/simple-websocket-server as a simple way to get websocket server into swampyer.
+
+At the time this module wasn't in pipy and I needed some additional tweaks and since it was such a little library, the choice was made to pull it right in.
+
+
+
