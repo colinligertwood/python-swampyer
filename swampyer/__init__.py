@@ -1,3 +1,4 @@
+import sys
 import re
 import io
 import json
@@ -10,6 +11,7 @@ import websocket
 from .messages import *
 from .utils import logger
 from .exceptions import *
+from .server import WAMPServer
 
 STATE_DISCONNECTED = 0
 STATE_CONNECTING = 1
@@ -21,6 +23,15 @@ REGISTERED_CALL_URI = 0
 REGISTERED_CALL_CALLBACK = 1
 SUBSCRIPTION_TOPIC = 0
 SUBSCRIPTION_CALLBACK = 1
+
+ERROR_MESSAGE = """HTTP/1.1 404 Bad Request
+Content-Type: text/html; charset=iso-8859-1
+Server: Apache/2.2.14 (Win32)
+Content-Type: text/html; charset=iso-8859-1
+Connection: Closed
+
+Missing document
+"""
 
 class WampInvokeWrapper(threading.Thread):
     """ Used to put invoke requests on a separate thread
@@ -138,7 +149,7 @@ class WAMPClient(threading.Thread):
         self._state = STATE_CONNECTING
         logger.debug("About to connect to {}".format(self.url))
 
-        m = re.search('(ws+)://([\w\.]+)(:?:(\d+))?',self.url)
+        m = re.search('(ws+)://([\w\.]+)(?::(\d+))?',self.url)
 
         options['subprotocols'] = ['wamp.2.json']
         options.setdefault('timeout',self._loop_timeout)
@@ -161,6 +172,9 @@ class WAMPClient(threading.Thread):
                                 **options
                             )
             except Exception as ex:
+                print "EXCEPTIOn????", ex
+                import traceback
+                traceback.print_exc()
                 if self.auto_reconnect:
                     # FIXME: how long to wait?
                     time.sleep(1)
