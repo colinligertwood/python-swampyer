@@ -110,6 +110,7 @@ class WAMPClient(threading.Thread):
     sockopt = None
     loop_timeout = 5
     heartbeat_timeout = 10
+    ping_interval = 1
 
     auto_reconnect = True
 
@@ -140,6 +141,7 @@ class WAMPClient(threading.Thread):
                 timeout=10,
                 loop_timeout=5,
                 heartbeat_timeout=5,
+                ping_interval=1,
                 auto_reconnect=1,
                 sslopt=None,
                 sockopt=None,
@@ -164,7 +166,8 @@ class WAMPClient(threading.Thread):
             sslopt = sslopt,
             sockopt = sockopt,
             loop_timeout = loop_timeout,
-            heartbeat_timeout = heartbeat_timeout
+            heartbeat_timeout = heartbeat_timeout,
+            ping_interval = ping_interval
         )
 
     def get_full_uri(self,uri):
@@ -246,10 +249,10 @@ class WAMPClient(threading.Thread):
         self._request_loop_notify_restart.notify()
         self._request_loop_notify_restart.release()
 
-    def start_heartbeat(self, interval, event):
+    def start_heartbeat(self, event):
         self._last_ping_time = None
         self._last_pong_time = None
-        while not event.wait(interval) and not self._stop_heartbeat:
+        while not event.wait(self.ping_interval) and not self._stop_heartbeat:
             self._last_ping_time = time.time()
             try:
                 self.ws.ping(str(self._last_ping_time))
@@ -260,15 +263,15 @@ class WAMPClient(threading.Thread):
     def stop_heartbeat(self):
         self._stop_heartbeat = True
 
-    def heartbeat(self, ping_interval=1):
+    def heartbeat(self):
         """ starts a new thread that sends websocket ping messages to
         the router.
         """
         self._stop_heartbeat = False
-        if ping_interval:
+        if self.ping_interval:
             event = threading.Event()
             thread = threading.Thread(
-                target=self.start_heartbeat, args=(ping_interval, event))
+                target=self.start_heartbeat, args=(event,))
             thread.setDaemon(True)
             thread.start()
             self.heartbeat_thread = thread
@@ -287,7 +290,7 @@ class WAMPClient(threading.Thread):
         for k in ('url','uri_base','realm',
                   'agent','timeout','authmethods', 'authid',
                   'auto_reconnect', 'sslopt', 'sockopt',
-                  'loop_timeout', 'heartbeat_timeout'):
+                  'loop_timeout', 'heartbeat_timeout', 'ping_interval'):
             if k in kwargs:
                 setattr(self,k,kwargs[k])
 
@@ -308,7 +311,7 @@ class WAMPClient(threading.Thread):
         # Then rebind all the registrations and callbacks
         # if there's a need
         if details.details['authmethod'] != 'anonymous':
-            self.heartbeat(ping_interval=1)
+            self.heartbeat()
         to_register = self._registered_calls
         self._registered_calls = {}
         for uri, callback in to_register.values():
