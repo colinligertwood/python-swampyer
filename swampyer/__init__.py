@@ -110,7 +110,7 @@ class WAMPClient(threading.Thread):
     sockopt = None
     loop_timeout = 5
     heartbeat_timeout = 10
-    ping_interval = 1
+    ping_interval = 3
 
     auto_reconnect = True
 
@@ -140,8 +140,8 @@ class WAMPClient(threading.Thread):
                 authid=None,
                 timeout=10,
                 loop_timeout=5,
-                heartbeat_timeout=5,
-                ping_interval=1,
+                heartbeat_timeout=10,
+                ping_interval=3,
                 auto_reconnect=1,
                 sslopt=None,
                 sockopt=None,
