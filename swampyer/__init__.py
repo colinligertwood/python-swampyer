@@ -660,6 +660,13 @@ class WAMPClient(threading.Thread):
                   ))
         if result == WAMP_REGISTERED:
             self._registered_calls[result.registration_id] = [ uri, callback ]
+        elif result == WAMP_ERROR:
+            if result.args:
+                err = message.args
+            else:
+                err = [result.error]
+            raise ExInvocationError(*err)
+
         return result
 
     def run(self):
