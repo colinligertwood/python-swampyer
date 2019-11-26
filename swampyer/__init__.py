@@ -652,6 +652,20 @@ class WAMPClient(threading.Thread):
 
         return self
 
+    def unregister(self, registration_id):
+        result = self.send_and_await_response(UNREGISTER(registration_id=registration_id))
+        if result == WAMP_UNREGISTERED:
+            del self._registered_calls[result.registration_id]
+        elif result == WAMP_ERROR:
+            logger.error("Error unregistering call: {}".format(result.args))
+            if result.args:
+                err = result.args
+            else:
+                err = [result.error]
+            raise ExInvocationError(*err)
+
+        return result
+
     def register(self,uri,callback,details=None):
         full_uri = self.get_full_uri(uri)
         result = self.send_and_await_response(REGISTER(
@@ -660,6 +674,14 @@ class WAMPClient(threading.Thread):
                   ))
         if result == WAMP_REGISTERED:
             self._registered_calls[result.registration_id] = [ uri, callback ]
+        elif result == WAMP_ERROR:
+            logger.error("Error registering call: {}".format(result.args))
+            if result.args:
+                err = result.args
+            else:
+                err = [result.error]
+            raise ExInvocationError(*err)
+
         return result
 
     def run(self):
