@@ -408,7 +408,7 @@ class WAMPClient(threading.Thread):
         if not self.ws:
             raise WAMPConnectionError("WAMP is currently disconnected!")
         try:
-            self.ws.send(message)
+            self.ws.send_binary(message)
         except websocket.WebSocketConnectionClosedException:
             raise WAMPConnectionError("WAMP is currently disconnected!")
 
