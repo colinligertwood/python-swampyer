@@ -404,7 +404,7 @@ class WAMPClient(threading.Thread):
         if self._state == STATE_DISCONNECTED:
             raise WAMPConnectionError("WAMP is currently disconnected!")
         message = message.as_str()
-        logger.debug("SND>: {}".format(message))
+        logger.debug("SND>: {}".format(message.decode('ascii', errors='replace')))
         if not self.ws:
             raise WAMPConnectionError("WAMP is currently disconnected!")
         try:
@@ -744,9 +744,8 @@ class WAMPClient(threading.Thread):
                 continue
 
             try:
-                logger.debug("<RCV: {}".format(data))
+                logger.debug("<RCV: {}".format(data.decode('ascii', errors='replace')))
                 message = WampMessage.loads(data)
-                logger.debug("<RCV: {}".format(message.dump()))
                 try:
                     code_name = message.code_name.lower()
                     handler_name = "handle_"+code_name
