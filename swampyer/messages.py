@@ -113,7 +113,7 @@ class WampMessage(object):
         return record
 
     def dump(self):
-        s = u"JSON({})={}".format(self.code_name,self.as_str())
+        s = u"MSG({})={}".format(self.code_name,self.as_str())
         s += u"\n--[{}]----------------------------\n".format(self.code_name)
         for field in self._fields:
             s += u'{}: {}\n'.format(
