@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 import io
 import json
+import cbor
 import time
 import threading
 import six
@@ -185,7 +186,7 @@ class WAMPClient(threading.Thread):
 
         m = re.search('(ws+)://([\w\.]+)(:?:(\d+))?',self.url)
 
-        options['subprotocols'] = ['wamp.2.json']
+        options['subprotocols'] = ['wamp.2.cbor', 'wamp.2.json']
 
         # Handle the weird issue in websocket that the origin
         # port will be always http://host:port even though connection is

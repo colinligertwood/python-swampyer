@@ -1,6 +1,7 @@
 
 import sys
 import json
+import cbor
 import six
 import decimal
 
@@ -89,7 +90,8 @@ class WampMessage(object):
     @staticmethod
     def loads(data_str):
         # First column in list is always WAMP type code
-        data = json.loads(data_str)
+        #data = json.loads(data_str)
+        data = cbor.loads(data_str)
         if not data: return
         message_code = data[0]
         message_class = MESSAGE_CLASS_LOOKUP[message_code]
@@ -121,7 +123,8 @@ class WampMessage(object):
         return s
 
     def as_str(self):
-        return json.dumps(self.package(), cls=WampJSONEncoder)
+        #return json.dumps(self.package(), cls=WampJSONEncoder)
+        return cbor.dumps(self.package())
 
     def __getitem__(self,k):
         return getattr(self,k)
