@@ -42,3 +42,5 @@ class LIST(FIELD):
     def default_value(self):
         return list(self.default)
 
+class BIN(FIELD):
+    default = b''

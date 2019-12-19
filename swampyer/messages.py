@@ -44,9 +44,11 @@ MESSAGE_TYPES = dict(
 
     INVOCATION   = [ CODE('code',68), ID('request_id'), ID('registration_id'), DICT('details'),
                       LIST('args',**OPT), DICT('kwargs',**OPT) ],
+    TINVOCATION =  [ CODE('code',68), ID('request_id'), ID('registration_id'), DICT('details'), BIN('payload')],
 
     YIELD        = [ CODE('code',70), ID('request_id'), DICT('options'),
                       LIST('args',**OPT), DICT('kwargs',**OPT) ],
+    TYIELD      =  [ CODE('code',70), ID('request_id'), DICK('options'), BIN('payload')],
 )
 MESSAGE_CLASS_LOOKUP = {}
 MESSAGE_NAME_LOOKUP = {}
@@ -62,6 +64,40 @@ class WampJSONEncoder(json.JSONEncoder):
         if isinstance(obj, decimal.Decimal):
             return float(obj)
         return json.JSONEncoder.default(self, obj)
+
+class WampSerializer(object):
+    """ Interface to serializer object (JSON, CBOR, etc.)
+    """
+    serializer = None
+    codec = None
+    binary = None
+
+    def __init__(self, codec):
+        if codec in ('CBOR', 'cbor'):
+            self.codec = 'cbor'
+            self.serializer = cbor
+            self.loads = self.loads_json
+            self.dumps = self.dumps_json
+            self.binary = False
+        else:
+            self.codec = 'json'
+            self.serializer = json
+            self.loads = self.loads_cbor
+            self.dumps = self.dumps_cbor
+            self.binary = True
+
+    def loads_json(self, input_str):
+        return json.loads(input_str)
+
+    def dumps_json(self, input_obj):
+        return json.dumps(input_obj, cls=WampJSONEncoder)
+
+    def loads_cbor(self, input_obj):
+        return cbor.loads(input_obj)
+
+    def dumps_cbor(self, input_obj):
+        return cbor.dumps(input_obj)
+
 
 class WampMessage(object):
     _fields = []     # autoset
