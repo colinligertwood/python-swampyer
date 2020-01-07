@@ -1,7 +1,6 @@
 
 import sys
 import json
-import cbor
 import six
 import decimal
 
@@ -48,7 +47,7 @@ MESSAGE_TYPES = dict(
 
     YIELD        = [ CODE('code',70), ID('request_id'), DICT('options'),
                       LIST('args',**OPT), DICT('kwargs',**OPT) ],
-    TYIELD      =  [ CODE('code',70), ID('request_id'), DICK('options'), BIN('payload')],
+    TYIELD      =  [ CODE('code',70), ID('request_id'), DICT('options'), BIN('payload')],
 )
 MESSAGE_CLASS_LOOKUP = {}
 MESSAGE_NAME_LOOKUP = {}
@@ -64,40 +63,6 @@ class WampJSONEncoder(json.JSONEncoder):
         if isinstance(obj, decimal.Decimal):
             return float(obj)
         return json.JSONEncoder.default(self, obj)
-
-class WampSerializer(object):
-    """ Interface to serializer object (JSON, CBOR, etc.)
-    """
-    serializer = None
-    codec = None
-    binary = None
-
-    def __init__(self, codec):
-        if codec in ('CBOR', 'cbor'):
-            self.codec = 'cbor'
-            self.serializer = cbor
-            self.loads = self.loads_json
-            self.dumps = self.dumps_json
-            self.binary = False
-        else:
-            self.codec = 'json'
-            self.serializer = json
-            self.loads = self.loads_cbor
-            self.dumps = self.dumps_cbor
-            self.binary = True
-
-    def loads_json(self, input_str):
-        return json.loads(input_str)
-
-    def dumps_json(self, input_obj):
-        return json.dumps(input_obj, cls=WampJSONEncoder)
-
-    def loads_cbor(self, input_obj):
-        return cbor.loads(input_obj)
-
-    def dumps_cbor(self, input_obj):
-        return cbor.dumps(input_obj)
-
 
 class WampMessage(object):
     _fields = []     # autoset
@@ -126,8 +91,7 @@ class WampMessage(object):
     @staticmethod
     def loads(data_str):
         # First column in list is always WAMP type code
-        #data = json.loads(data_str)
-        data = cbor.loads(data_str)
+        data = json.loads(data_str)
         if not data: return
         message_code = data[0]
         message_class = MESSAGE_CLASS_LOOKUP[message_code]
@@ -159,8 +123,7 @@ class WampMessage(object):
         return s
 
     def as_str(self):
-        #return json.dumps(self.package(), cls=WampJSONEncoder)
-        return cbor.dumps(self.package())
+        return json.dumps(self.package(), cls=WampJSONEncoder)
 
     def __getitem__(self,k):
         return getattr(self,k)

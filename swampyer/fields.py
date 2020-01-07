@@ -44,3 +44,4 @@ class LIST(FIELD):
 
 class BIN(FIELD):
     default = b''
+
